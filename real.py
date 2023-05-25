@@ -150,8 +150,6 @@ def detect(opt):
                         left = c1[0]
                         right = c2[0]   
                         face_locations = [(top, right,bottom,left)]
-                        print(face_locations)
-                        print(len(face_locations)) 
                         face_encodings = face_recognition.face_encodings(im0, face_locations)
 
                         face_names = []

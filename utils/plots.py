@@ -74,11 +74,7 @@ def plot_one_box(x, im, color=None, label=None, line_thickness=3, kpt_label=Fals
 
     ########### Mosaic Process ###########
     if mosaic: 
-        print(f'c1: {c1}')
-        print(f'c2: {c2}')
-        print()
-        print()
-        mosaic_loc = im[c1[1]:c2[1], c1[0]:c2[0]]
+        mosaic_loc = im[c1[1]:c2[1], c1[0]:c2[0]] # top,bottom,left,right
         mosaic_loc=cv2.blur(mosaic_loc,(50,50))
         im[c1[1]:c2[1], c1[0]:c2[0]] = mosaic_loc
     ########### Mosaic Process ###########
