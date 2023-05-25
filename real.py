@@ -16,6 +16,28 @@ from utils.general import check_img_size, check_requirements, check_imshow, non_
 from utils.plots import colors, plot_one_box
 from utils.torch_utils import select_device, load_classifier, time_synchronized
 
+################################# ADD FACE RECOGNITION #################################
+import face_recognition
+import numpy as np
+
+########### Select the picture which will not be mosaiced ###########
+my_image = face_recognition.load_image_file("input/my_image.jpg")
+my_face_encoding = face_recognition.face_encodings(my_image)[0]
+
+known_face_encodings = [
+    my_face_encoding
+]
+known_face_names = [
+    "Me"
+]
+
+# Initialize some variables
+face_locations = []
+face_encodings = []
+face_names = []
+################################# ADD FACE RECOGNITION #################################
+
+
 def detect(opt):
     source, weights, view_img, save_txt, imgsz, save_txt_tidl, kpt_label = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size, opt.save_txt_tidl, opt.kpt_label
     save_img = not opt.nosave and not source.endswith('.txt')  # save inference images
@@ -82,9 +104,9 @@ def detect(opt):
         if classify:
             pred = apply_classifier(pred, modelc, img, im0s)
 
-        print(f'This is Pred: {pred}')
-        print(f'This is length of Pred: {len(pred)}')
-        print(f'This is pred[0]: {pred[0]}')
+
+
+
 
         # Process detections
         for i, det in enumerate(pred):  # detections per image
@@ -102,9 +124,6 @@ def detect(opt):
                 # Rescale boxes from img_size to im0 size
                 scale_coords(img.shape[2:], det[:, :4], im0.shape, kpt_label=False)
                 scale_coords(img.shape[2:], det[:, 6:], im0.shape, kpt_label=kpt_label, step=3)
-
-                print(f'This is the rescaled det: ')
-
                 
                 # Print results
                 for c in det[:, 5].unique():
@@ -123,8 +142,32 @@ def detect(opt):
                         c = int(cls)  # integer class
                         label = None if opt.hide_labels else (names[c] if opt.hide_conf else f'{names[c]} {conf:.2f}')
                         kpts = det[det_index, 6:]
-                        plot_one_box(xyxy, im0, label=label, mosaic=True, color=colors(c, True), line_thickness=opt.line_thickness,  steps=3, orig_shape=im0.shape[:2])
 
+                        ######################### Face Encode #########################
+                        c1, c2 = (int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3]))
+                        top = c1[1]
+                        bottom = c2[1]
+                        left = c1[0]
+                        right = c2[0]   
+                        face_locations = [(top, right),(bottom,left)]; 
+                        face_encodings = face_recognition.face_encodings(im0, face_locations)
+
+                        face_names = []
+
+                        for face_encoding in face_encodings:
+                            matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+                            name = "Unknown"
+                            face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+                            best_match_index = np.argmin(face_distances)
+                            if matches[best_match_index]:
+                                name = known_face_names[best_match_index]
+                            face_names.append(name)
+                        
+                        if face_names[0] == "Unknown":
+                            plot_one_box(xyxy, im0, label=label, mosaic=True, color=colors(c, True), line_thickness=opt.line_thickness,  steps=3, orig_shape=im0.shape[:2])
+
+                        ######################### Face Encode #########################
+                        
                         if opt.save_crop:
                             save_one_box(xyxy, im0s, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
                 
