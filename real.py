@@ -82,6 +82,10 @@ def detect(opt):
         if classify:
             pred = apply_classifier(pred, modelc, img, im0s)
 
+        print(f'This is Pred: {pred}')
+        print(f'This is length of Pred: {len(pred)}')
+        print(f'This is pred[0]: {pred[0]}')
+
         # Process detections
         for i, det in enumerate(pred):  # detections per image
             if webcam:  # batch_size >= 1
@@ -99,11 +103,14 @@ def detect(opt):
                 scale_coords(img.shape[2:], det[:, :4], im0.shape, kpt_label=False)
                 scale_coords(img.shape[2:], det[:, 6:], im0.shape, kpt_label=kpt_label, step=3)
 
+                print(f'This is the rescaled det: ')
+
+                
                 # Print results
                 for c in det[:, 5].unique():
                     n = (det[:, 5] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
-
+                '''
                 # Write results
                 for det_index, (*xyxy, conf, cls) in enumerate(reversed(det[:,:6])):
                     if save_txt:  # Write to file
@@ -119,7 +126,7 @@ def detect(opt):
                         plot_one_box(xyxy, im0, label=label, color=colors(c, True), line_thickness=opt.line_thickness, kpt_label=kpt_label, kpts=kpts, steps=3, orig_shape=im0.shape[:2])
                         if opt.save_crop:
                             save_one_box(xyxy, im0s, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
-
+                '''
 
                 if save_txt_tidl:  # Write to file in tidl dump format
                     for *xyxy, conf, cls in det_tidl:
