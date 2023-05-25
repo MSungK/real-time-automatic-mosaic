@@ -1,0 +1,1 @@
+python real.py --weights yolov7-lite-t.pt --conf 0.25 --source 0
