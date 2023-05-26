@@ -1,0 +1,2 @@
+python detect.py --weights epoch_224.pt --conf 0.5 --img-size 640 --source data/test_image/
+

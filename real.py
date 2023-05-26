@@ -22,11 +22,23 @@ import numpy as np
 
 ########### Select the picture which will not be mosaiced ###########
 my_image = face_recognition.load_image_file("input/my_image.jpg")
+my_image1 = face_recognition.load_image_file("input/my_image1.jpg")
+my_image2 = face_recognition.load_image_file("input/my_image2.jpg")
+my_image3 = face_recognition.load_image_file("input/my_image3.jpg")
+
 my_face_encoding = face_recognition.face_encodings(my_image)[0]
+my_face_encoding1 = face_recognition.face_encodings(my_image1)[0]
+my_face_encoding2 = face_recognition.face_encodings(my_image2)[0]
+my_face_encoding3 = face_recognition.face_encodings(my_image3)[0]
+
 
 known_face_encodings = [
-    my_face_encoding
+    my_face_encoding,
+    my_face_encoding1,
+    my_face_encoding2,
+    my_face_encoding3,
 ]
+
 known_face_names = [
     "Me"
 ]
@@ -39,7 +51,7 @@ face_names = []
 
 
 def detect(opt):
-    source, weights, view_img, save_txt, imgsz, save_txt_tidl, kpt_label = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size, opt.save_txt_tidl, opt.kpt_label
+    source, weights, view_img, save_txt, imgsz, save_txt_tidl, kpt_label, show_box = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size, opt.save_txt_tidl, opt.kpt_label, opt.bbox
     save_img = not opt.nosave and not source.endswith('.txt')  # save inference images
     webcam = source.isnumeric() or source.endswith('.txt') or source.lower().startswith(
         ('rtsp://', 'rtmp://', 'http://', 'https://'))
@@ -176,10 +188,10 @@ def detect(opt):
                 name = "Unknown"
                 face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
                 best_match_index = np.argmin(face_distances)
-                if face_distances[best_match_index] < 0.2:
+                if face_distances[best_match_index] < 0.4:
                     name = "Me"
                 if name == "Unknown":
-                    plot_one_box(plot_locations[i], im0, label=label, mosaic=True, color=colors(c, True), line_thickness=opt.line_thickness,  steps=3, orig_shape=im0.shape[:2])
+                    plot_one_box(plot_locations[i], im0, label=label, mosaic=True, show_box=show_box, color=colors(c, True), line_thickness=opt.line_thickness,  steps=3, orig_shape=im0.shape[:2])
                 if opt.save_crop:
                     save_one_box(xyxy, im0s, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
 
@@ -243,6 +255,7 @@ if __name__ == '__main__':
     parser.add_argument('--hide-labels', default=False, action='store_true', help='hide labels')
     parser.add_argument('--hide-conf', default=False, action='store_true', help='hide confidences')
     parser.add_argument('--kpt-label', type=int, default=5, help='number of keypoints')
+    parser.add_argument('--bbox', default=False, type=bool, help='display bbox')
     opt = parser.parse_args()
     print(opt)
     check_requirements(exclude=('tensorboard', 'pycocotools', 'thop'))

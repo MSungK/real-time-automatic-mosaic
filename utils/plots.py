@@ -65,7 +65,7 @@ def butter_lowpass_filtfilt(data, cutoff=1500, fs=50000, order=5):
     return filtfilt(b, a, data)  # forward-backward filter
 
 
-def plot_one_box(x, im, color=None, label=None, line_thickness=3, kpt_label=False, kpts=None, steps=2, orig_shape=None, mosaic=False):
+def plot_one_box(x, im, color=None, label=None, line_thickness=3, kpt_label=False, kpts=None, steps=2, orig_shape=None, mosaic=False, show_box=False):
     # Plots one bounding box on image 'im' using OpenCV
     assert im.data.contiguous, 'Image not contiguous. Apply np.ascontiguousarray(im) to plot_on_box() input image.'
     tl = line_thickness or round(0.002 * (im.shape[0] + im.shape[1]) / 2) + 1  # line/font thickness
@@ -78,6 +78,8 @@ def plot_one_box(x, im, color=None, label=None, line_thickness=3, kpt_label=Fals
         mosaic_loc=cv2.blur(mosaic_loc,(50,50))
         im[c1[1]:c2[1], c1[0]:c2[0]] = mosaic_loc
     ########### Mosaic Process ###########
+
+    if show_box: 
         cv2.rectangle(im, c1, c2, (255,0,0), thickness=tl*1//3, lineType=cv2.LINE_AA)
         if label:
             if len(label.split(' ')) > 1:
@@ -89,7 +91,7 @@ def plot_one_box(x, im, color=None, label=None, line_thickness=3, kpt_label=Fals
                 cv2.putText(im, label, (c1[0], c1[1] - 2), 0, tl / 6, [225, 255, 255], thickness=tf//2, lineType=cv2.LINE_AA)
         if kpt_label:
             plot_skeleton_kpts(im, kpts, steps, orig_shape=orig_shape)
-
+    
 
 def plot_skeleton_kpts(im, kpts, steps, orig_shape=None):
     #Plot the skeleton and keypointsfor coco datatset
