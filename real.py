@@ -120,6 +120,10 @@ def detect(opt):
             txt_path = str(save_dir / 'labels' / p.stem) + ('' if dataset.mode == 'image' else f'_{frame}')  # img.txt
             s += '%gx%g ' % img.shape[2:]  # print string
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
+
+            face_locations = []
+            plot_locations = []
+
             if len(det):
                 # Rescale boxes from img_size to im0 size
                 scale_coords(img.shape[2:], det[:, :4], im0.shape, kpt_label=False)
@@ -149,27 +153,12 @@ def detect(opt):
                         bottom = c2[1]
                         left = c1[0]
                         right = c2[0]   
-                        face_locations = [(top, right,bottom,left)]
-                        face_encodings = face_recognition.face_encodings(im0, face_locations)
-
-                        face_names = []
-
-                        for face_encoding in face_encodings:
-                            matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
-                            name = "Unknown"
-                            face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
-                            best_match_index = np.argmin(face_distances)
-                            if matches[best_match_index]:
-                                name = known_face_names[best_match_index]
-                            face_names.append(name)
+                        face_locations.append((top, right,bottom,left))
+                        plot_locations.append(xyxy)
                         
-                        if face_names[0] == "Unknown":
-                            plot_one_box(xyxy, im0, label=label, mosaic=True, color=colors(c, True), line_thickness=opt.line_thickness,  steps=3, orig_shape=im0.shape[:2])
 
-                        ######################### Face Encode #########################
                         
-                        if opt.save_crop:
-                            save_one_box(xyxy, im0s, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
+                        
                 
 
                 if save_txt_tidl:  # Write to file in tidl dump format
@@ -178,6 +167,22 @@ def detect(opt):
                         line = (conf, cls,  *xyxy) if opt.save_conf else (cls, *xyxy)  # label format
                         with open(txt_path + '.txt', 'a') as f:
                             f.write(('%g ' * len(line)).rstrip() % line + '\n')
+
+
+
+            face_encodings = face_recognition.face_encodings(im0, face_locations)
+            for i, face_encoding in enumerate(face_encodings):
+                # matches = face_recognition.compare_faces(known_face_encodings, face_encoding, tolerance=0.8)
+                name = "Unknown"
+                face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+                best_match_index = np.argmin(face_distances)
+                if face_distances[best_match_index] < 0.2:
+                    name = "Me"
+                if name == "Unknown":
+                    plot_one_box(plot_locations[i], im0, label=label, mosaic=True, color=colors(c, True), line_thickness=opt.line_thickness,  steps=3, orig_shape=im0.shape[:2])
+                if opt.save_crop:
+                    save_one_box(xyxy, im0s, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
+
 
             # Print time (inference + NMS)
             print(f'{s}Done. ({t2 - t1:.3f}s)')
